@@ -138,12 +138,21 @@ async def get_student_chart(student_id: int):
         exam1_marks = [exam1_student[subject].values[0] for subject in SUBJECTS]
         exam2_marks = [exam2_student[f"predicted_{subject}"].values[0] for subject in SUBJECTS]
 
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
-        ax1.pie(exam1_marks, labels=SUBJECTS, autopct='%1.1f%%')
-        ax1.set_title(f'Exam1 Marks Distribution\nStudent {student_id}')
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
-        ax2.pie(exam2_marks, labels=SUBJECTS, autopct='%1.1f%%')
-        ax2.set_title(f'Predicted Exam2 Marks Distribution\nStudent {student_id}')
+        # Bar graph for Exam 1
+        ax1.bar(SUBJECTS, exam1_marks, color='skyblue')
+        ax1.set_title(f'Exam 1 Marks\nStudent {student_id}')
+        ax1.set_ylabel("Marks")
+        ax1.set_ylim(0, 100)  # assuming max marks is 100
+        ax1.set_xticklabels(SUBJECTS, rotation=45)
+
+        # Bar graph for Predicted Exam 2
+        ax2.bar(SUBJECTS, exam2_marks, color='lightgreen')
+        ax2.set_title(f'Predicted Exam 2 Marks\nStudent {student_id}')
+        ax2.set_ylabel("Marks")
+        ax2.set_ylim(0, 100)
+        ax2.set_xticklabels(SUBJECTS, rotation=45)
 
         chart_filename = f"student_{student_id}_marks_chart.png"
         plt.tight_layout()

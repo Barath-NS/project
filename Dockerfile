@@ -1,19 +1,26 @@
 FROM python:3.9-slim
+
 WORKDIR /app
 
-# Install system dependencies
+# 1. Install system dependencies more efficiently
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc python3-dev && \
+    apt-get install -y --no-install-recommends gcc python3-dev libopenblas-dev && \
     rm -rf /var/lib/apt/lists/*
 
+# 2. Copy only requirements first for better caching
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
+# 3. Install with timeout settings and retries
+RUN pip install --no-cache-dir \
+    --default-timeout=100 \
+    --retries 5 \
+    -r requirements.txt
+
+# 4. Copy the rest
 COPY . .
 
-# Create static directory for HTML
-RUN mkdir -p /app/static
-COPY index.html /app/static/
+# 5. Explicitly copy static files
+COPY static/ /app/static/
 
 EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "students:app", "--host", "0.0.0.0", "--port", "8000"]
