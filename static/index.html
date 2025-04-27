@@ -42,18 +42,12 @@
             padding: 20px 0;
             box-shadow: var(--shadow);
             margin-bottom: 30px;
+            position: relative;
         }
 
         header h1 {
             text-align: center;
             font-size: 2.5rem;
-        }
-
-        .auth-container {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-bottom: 40px;
         }
 
         .auth-box {
@@ -62,6 +56,7 @@
             padding: 25px;
             box-shadow: var(--shadow);
             width: 350px;
+            margin: 0 auto;
         }
 
         .auth-box h2 {
@@ -218,6 +213,34 @@
             height: auto;
         }
 
+        .performance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .performance-table th, 
+        .performance-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .performance-table th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        .performance-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .performance-table tr:hover {
+            background-color: #e6f7ff;
+        }
+
         .remark {
             margin-top: 30px;
             padding: 20px;
@@ -254,6 +277,21 @@
         .logout-btn:hover {
             background-color: #c0392b;
         }
+
+        .switch-auth {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .switch-auth a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .switch-auth a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -264,23 +302,9 @@
     </header>
 
     <div class="container">
-        <!-- Authentication Section -->
-        <div class="auth-container">
-            <div class="auth-box" id="register-box">
-                <h2>Create Account</h2>
-                <div class="form-group">
-                    <label for="reg-username">Username</label>
-                    <input type="text" id="reg-username" placeholder="Enter username">
-                </div>
-                <div class="form-group">
-                    <label for="reg-password">Password</label>
-                    <input type="password" id="reg-password" placeholder="Enter password">
-                </div>
-                <button class="btn" id="register-btn">Register</button>
-                <div class="status-message hidden" id="reg-message"></div>
-            </div>
-
-            <div class="auth-box" id="login-box">
+        <!-- Login Page -->
+        <div id="login-page">
+            <div class="auth-box">
                 <h2>Login</h2>
                 <div class="form-group">
                     <label for="login-username">Username</label>
@@ -292,6 +316,29 @@
                 </div>
                 <button class="btn btn-success" id="login-btn">Login</button>
                 <div class="status-message hidden" id="login-message"></div>
+                <div class="switch-auth">
+                    Don't have an account? <a href="#" id="show-register">Create Account</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Page (Hidden by default) -->
+        <div id="register-page" class="hidden">
+            <div class="auth-box">
+                <h2>Create Account</h2>
+                <div class="form-group">
+                    <label for="reg-username">Username</label>
+                    <input type="text" id="reg-username" placeholder="Enter username">
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Password</label>
+                    <input type="password" id="reg-password" placeholder="Enter password">
+                </div>
+                <button class="btn" id="register-btn">Register</button>
+                <div class="status-message hidden" id="reg-message"></div>
+                <div class="switch-auth">
+                    Already have an account? <a href="#" id="show-login">Login</a>
+                </div>
             </div>
         </div>
 
@@ -329,8 +376,20 @@
 
             <div class="charts-container hidden" id="results-section">
                 <div class="chart-box">
-                    <h3>Exam 1 Performance</h3>
-                    <img id="exam1-chart" class="chart-img" src="" alt="Exam 1 Chart">
+                    <h3>Performance Table</h3>
+                    <table class="performance-table" id="performance-table">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Exam 1 Marks</th>
+                                <th>Exam 2 Marks</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="performance-data">
+                            <!-- Data will be inserted here -->
+                        </tbody>
+                    </table>
                 </div>
                 
                 <div class="chart-box">
@@ -348,12 +407,14 @@
         const users = JSON.parse(localStorage.getItem('users')) || [];
         
         // DOM Elements
-        const registerBox = document.getElementById('register-box');
-        const loginBox = document.getElementById('login-box');
+        const loginPage = document.getElementById('login-page');
+        const registerPage = document.getElementById('register-page');
         const dashboard = document.getElementById('dashboard');
         const registerBtn = document.getElementById('register-btn');
         const loginBtn = document.getElementById('login-btn');
         const logoutBtn = document.getElementById('logout-btn');
+        const showRegister = document.getElementById('show-register');
+        const showLogin = document.getElementById('show-login');
         const regMessage = document.getElementById('reg-message');
         const loginMessage = document.getElementById('login-message');
         const searchBtn = document.getElementById('search-btn');
@@ -370,6 +431,10 @@
         const trainMessage = document.getElementById('train-message');
         const exam2Message = document.getElementById('exam2-message');
 
+        // Performance table elements
+        const performanceTable = document.getElementById('performance-table');
+        const performanceData = document.getElementById('performance-data');
+
         // Event Listeners
         registerBtn.addEventListener('click', registerUser);
         loginBtn.addEventListener('click', loginUser);
@@ -378,6 +443,14 @@
         uploadExam1Btn.addEventListener('click', uploadExam1);
         trainModelsBtn.addEventListener('click', trainModels);
         uploadExam2Btn.addEventListener('click', uploadExam2);
+        showRegister.addEventListener('click', () => {
+            loginPage.classList.add('hidden');
+            registerPage.classList.remove('hidden');
+        });
+        showLogin.addEventListener('click', () => {
+            registerPage.classList.add('hidden');
+            loginPage.classList.remove('hidden');
+        });
 
         // Functions
         function registerUser() {
@@ -398,9 +471,11 @@
             localStorage.setItem('users', JSON.stringify(users));
             showMessage(regMessage, 'Registration successful! Please login.', 'success');
             
-            // Clear fields
+            // Clear fields and switch to login page
             document.getElementById('reg-username').value = '';
             document.getElementById('reg-password').value = '';
+            registerPage.classList.add('hidden');
+            loginPage.classList.remove('hidden');
         }
 
         function loginUser() {
@@ -415,9 +490,9 @@
             const user = users.find(user => user.username === username && user.password === password);
             
             if (user) {
-                // Hide auth boxes and show dashboard
-                registerBox.classList.add('hidden');
-                loginBox.classList.add('hidden');
+                // Hide auth pages and show dashboard
+                loginPage.classList.add('hidden');
+                registerPage.classList.add('hidden');
                 dashboard.classList.remove('hidden');
                 showMessage(loginMessage, '', 'success');
                 
@@ -430,9 +505,9 @@
         }
 
         function logout() {
-            // Show auth boxes and hide dashboard
-            registerBox.classList.remove('hidden');
-            loginBox.classList.remove('hidden');
+            // Show login page and hide dashboard
+            loginPage.classList.remove('hidden');
+            registerPage.classList.add('hidden');
             dashboard.classList.add('hidden');
             resultsSection.classList.add('hidden');
             remarkBox.classList.add('hidden');
@@ -536,40 +611,94 @@
             }
             
             try {
-                const response = await fetch(`/student_marks_chart/${studentId}`);
-                
-                if (response.ok) {
-                    // Get the image URL and display it
-                    const imageUrl = URL.createObjectURL(await response.blob());
-                    
-                    // Display both charts (they are combined in one image in your backend)
-                    document.getElementById('exam1-chart').src = imageUrl;
-                    document.getElementById('exam2-chart').src = imageUrl;
-                    
-                    // Show the results section
-                    resultsSection.classList.remove('hidden');
-                    
-                    // In a real app, you would calculate the average from actual data
-                    // For demo purposes, we'll generate a random average
-                    const randomAverage = Math.floor(Math.random() * 40) + 40; // Between 40-80
-                    
-                    // Display remark based on average
-                    if (randomAverage < 60) {
-                        remarkBox.textContent = `Average Score: ${randomAverage} - Needs Improvement! Consider additional study sessions.`;
-                        remarkBox.className = 'remark improve';
-                    } else {
-                        remarkBox.textContent = `Average Score: ${randomAverage} - Good job! Keep up the good work.`;
-                        remarkBox.className = 'remark good';
-                    }
-                    remarkBox.classList.remove('hidden');
-                    
-                } else {
-                    const error = await response.json();
-                    alert(error.detail || 'Error fetching student data');
+                // First fetch the chart image for Exam 2
+                const chartResponse = await fetch(`/student_marks_chart/${studentId}`);
+                if (!chartResponse.ok) {
+                    const error = await chartResponse.json();
+                    throw new Error(error.detail || 'Error generating student chart');
                 }
+
+                // Display the Exam 2 chart
+                const imageUrl = URL.createObjectURL(await chartResponse.blob());
+                document.getElementById('exam2-chart').src = imageUrl;
+
+                // Then fetch the marks data for the table
+                const marksResponse = await fetch(`/student_marks_data/${studentId}`);
+                if (!marksResponse.ok) {
+                    const error = await marksResponse.json();
+                    throw new Error(error.detail || 'Error fetching marks data');
+                }
+
+                const marksData = await marksResponse.json();
+
+                // Clear previous data
+                performanceData.innerHTML = '';
+
+                // Calculate average and prepare table data
+                let totalMarks = 0;
+                let subjectCount = 0;
+                let allMarks = [];
+
+                // Add rows for each subject
+                for (const subject in marksData.exam1) {
+                    const exam1Mark = marksData.exam1[subject] || '-';
+                    const exam2Mark = marksData.exam2[subject] || '-';
+                    
+                    // Calculate remarks for each subject
+                    let remarks = '';
+                    if (exam1Mark !== '-' && exam2Mark !== '-') {
+                        const improvement = exam2Mark - exam1Mark;
+                        if (improvement > 10) {
+                            remarks = 'Excellent improvement!';
+                        } else if (improvement > 0) {
+                            remarks = 'Improved';
+                        } else if (improvement === 0) {
+                            remarks = 'No change';
+                        } else {
+                            remarks = 'Needs attention';
+                        }
+                    } else {
+                        remarks = 'Data not available';
+                    }
+
+                    // Add to totals if we have both marks
+                    if (exam1Mark !== '-' && exam2Mark !== '-') {
+                        totalMarks += exam1Mark + exam2Mark;
+                        subjectCount += 2;
+                        allMarks.push(exam1Mark, exam2Mark);
+                    }
+
+                    // Create table row
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${subject}</td>
+                        <td>${exam1Mark}</td>
+                        <td>${exam2Mark}</td>
+                        <td>${remarks}</td>
+                    `;
+                    performanceData.appendChild(row);
+                }
+
+                // Show the results section
+                resultsSection.classList.remove('hidden');
+
+                // Calculate and display overall average
+                const actualAverage = allMarks.length > 0 ? 
+                    allMarks.reduce((total, mark) => total + mark, 0) / allMarks.length : 0;
+
+                remarkBox.textContent = `Overall Average Score: ${actualAverage.toFixed(1)} - `;
+                remarkBox.textContent += actualAverage < 60 ? 
+                    'Needs Improvement! Consider additional study sessions.' : 
+                    'Good job! Keep up the good work.';
+                remarkBox.className = actualAverage < 60 ? 'remark improve' : 'remark good';
+                remarkBox.classList.remove('hidden');
+
             } catch (error) {
-                alert('Failed to fetch student data');
+                alert(error.message || 'Failed to fetch student data');
                 console.error('Search error:', error);
+                // Hide results if there was an error
+                resultsSection.classList.add('hidden');
+                remarkBox.classList.add('hidden');
             }
         }
     </script>

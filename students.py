@@ -120,7 +120,44 @@ async def predict_exam2(file: UploadFile = File(...)):
         return {"message": "Predictions generated successfully", "records": len(predicted_exam2)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
+    
+@app.get("/student_marks_data/{student_id}")
+async def get_student_marks(student_id: int):
+    global exam1_data, predicted_exam2
 
+    if exam1_data is None or predicted_exam2 is None:
+        raise HTTPException(status_code=400, detail="Please upload and predict data first")
+
+    try:
+        # Get exam 1 data
+        exam1_student = exam1_data[exam1_data['student_id'] == student_id]
+        if len(exam1_student) == 0:
+            raise HTTPException(status_code=404, detail="Student ID not found in Exam 1 data")
+
+        # Get predicted exam 2 data
+        exam2_student = predicted_exam2[predicted_exam2['student_id'] == student_id]
+        if len(exam2_student) == 0:
+            raise HTTPException(status_code=404, detail="Student ID not found in Exam 2 predictions")
+
+        # Prepare the response data
+        response = {
+            "exam1": {},
+            "exam2": {}
+        }
+
+        # Add exam 1 marks
+        for subject in SUBJECTS:
+            response["exam1"][subject] = float(exam1_student[subject].values[0])
+
+        # Add predicted exam 2 marks
+        for subject in SUBJECTS:
+            response["exam2"][subject] = float(exam2_student[f"predicted_{subject}"].values[0])
+
+        return response
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching student marks: {str(e)}")
+    
 @app.get("/student_marks_chart/{student_id}")
 async def get_student_chart(student_id: int):
     global exam1_data, predicted_exam2
