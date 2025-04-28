@@ -23,7 +23,7 @@ jobs:
           logout: true
 
       - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag project/project-demo:1.0
+        run: docker build . --file Dockerfile --tag barath2005/project-demo:1.0
 
       - name: Push the Docker image
-        run: docker push docker.io/project/project-demo:1.0
+        run: docker push barath2005/project-demo:1.0
