@@ -1,0 +1,29 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs: 
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Docker Login
+        uses: docker/login-action@v3.4.0
+        with:
+          username: barath2005
+          password: ${{ secrets.barath2005 }}
+          ecr: false
+          logout: true
+
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag docker/docker-demo:1.0
+
+      - name: Push the Docker image
+        run: docker push docker.io/docker/docker-demo:1.0
