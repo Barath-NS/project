@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Performance Analyzer</title>
+    <title>Student Performance Analyzer with Chatbot</title>
     <style>
         :root {
             --primary-color: #3498db;
@@ -15,6 +15,9 @@
             --dark-color: #2c3e50;
             --white: #ffffff;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --chatbot-bg: #f8f9fa;
+            --user-msg-bg: #e3f2fd;
+            --bot-msg-bg: #ffffff;
         }
 
         * {
@@ -28,12 +31,14 @@
             background-color: #f5f7fa;
             color: var(--dark-color);
             line-height: 1.6;
+            height: 100vh;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            height: 100%;
         }
 
         header {
@@ -45,9 +50,36 @@
             position: relative;
         }
 
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         header h1 {
-            text-align: center;
-            font-size: 2.5rem;
+            font-size: 2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-link {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
         }
 
         .auth-box {
@@ -93,6 +125,9 @@
             cursor: pointer;
             font-size: 16px;
             transition: background-color 0.3s;
+        }
+
+        .btn-block {
             width: 100%;
         }
 
@@ -108,33 +143,36 @@
             background-color: #27ae60;
         }
 
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
         .hidden {
             display: none;
         }
 
-        .dashboard {
-            background-color: var(--white);
-            border-radius: 8px;
-            padding: 25px;
-            box-shadow: var(--shadow);
-            margin-top: 30px;
+        .page {
+            display: none;
         }
 
-        .dashboard h2 {
-            margin-bottom: 20px;
-            color: var(--primary-color);
-            text-align: center;
+        .page.active {
+            display: block;
         }
 
         .upload-section {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
+            flex-wrap: wrap;
             gap: 20px;
+            margin-bottom: 30px;
         }
 
         .upload-box {
             flex: 1;
+            min-width: 300px;
             background-color: var(--light-color);
             padding: 20px;
             border-radius: 8px;
@@ -147,6 +185,7 @@
 
         .file-input {
             margin-bottom: 15px;
+            width: 100%;
         }
 
         .status-message {
@@ -171,52 +210,97 @@
             color: var(--primary-color);
         }
 
-        .student-search {
+        .search-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
             margin: 30px 0;
-            text-align: center;
         }
 
-        .student-search input {
+        .search-container input {
             padding: 10px;
-            width: 300px;
+            width: 100px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 16px;
-            margin-right: 10px;
         }
 
-        .charts-container {
+        .range-search-container {
             display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            gap: 20px;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .range-inputs {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .results-container {
+            display: none;
             margin-top: 30px;
         }
 
-        .chart-box {
+        .students-page-content {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .students-list-container {
             flex: 1;
-            min-width: 300px;
-            background-color: var(--white);
-            border-radius: 8px;
-            padding: 20px;
+            max-width: 400px;
+        }
+
+        .student-details-container {
+            flex: 2;
+            display: none;
+        }
+
+        .student-dropdown-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .student-search {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .student-dropdown {
+            width: 100%;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
             box-shadow: var(--shadow);
-            text-align: center;
+            background-color: white;
+            position: absolute;
+            z-index: 1000;
+            display: none;
         }
 
-        .chart-box h3 {
-            margin-bottom: 15px;
-            color: var(--dark-color);
+        .student-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
 
-        .chart-img {
-            max-width: 100%;
-            height: auto;
+        .student-item:hover {
+            background-color: #f5f5f5;
         }
 
         .performance-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-bottom: 30px;
             box-shadow: var(--shadow);
         }
 
@@ -241,6 +325,18 @@
             background-color: #e6f7ff;
         }
 
+        .chart-container {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .chart-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
         .remark {
             margin-top: 30px;
             padding: 20px;
@@ -262,22 +358,6 @@
             border: 2px solid var(--warning-color);
         }
 
-        .logout-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background-color: var(--danger-color);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .logout-btn:hover {
-            background-color: #c0392b;
-        }
-
         .switch-auth {
             text-align: center;
             margin-top: 15px;
@@ -292,18 +372,327 @@
         .switch-auth a:hover {
             text-decoration: underline;
         }
+
+        .student-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .student-header h3 {
+            color: var(--primary-color);
+        }
+
+        .close-details {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--danger-color);
+        }
+
+        /* Chatbot Styles */
+        .chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .chatbot-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .chatbot-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .chatbot-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .chatbot-body {
+            background-color: var(--chatbot-bg);
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chatbot-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--user-msg-bg);
+            border-top-right-radius: 5px;
+            color: var(--dark-color);
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: var(--bot-msg-bg);
+            border-top-left-radius: 5px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .chatbot-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+            background-color: white;
+        }
+
+        .chatbot-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .chatbot-input button {
+            margin-left: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 0 15px;
+            cursor: pointer;
+        }
+
+        .chatbot-input button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .chatbot-launcher {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+        }
+
+        .chatbot-launcher i {
+            font-size: 1.5rem;
+        }
+
+        .chatbot-graph {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+            border-radius: 8px;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .suggestion {
+            background-color: var(--light-color);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .suggestion:hover {
+            background-color: #ddd;
+        }
+
+        /* Two-column layout for chatbot page */
+        .chatbot-page-content {
+            display: flex;
+            gap: 30px;
+        }
+
+        .chatbot-section {
+            flex: 0;
+            min-width: 0px;
+        }
+
+        .data-section {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Loading indicator */
+        .typing-indicator {
+            display: flex;
+            padding: 10px 15px;
+            align-items: center;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #999;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+
+        /* Pre-formatted text for chatbot responses */
+        .pre-formatted {
+            white-space: pre-wrap;
+            font-family: monospace;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px 0;
+            overflow-x: auto;
+        }
+
+        /* Chatbot performance table styles */
+        .chatbot-performance-table {
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: var(--shadow);
+            margin: 20px 0;
+        }
+
+        .chatbot-performance-table th, 
+        .chatbot-performance-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .chatbot-performance-table th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        .chatbot-performance-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .chatbot-performance-table tr:hover {
+            background-color: #e6f7ff;
+        }
+
+        .chatbot-remark {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .chatbot-data-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .chatbot-chart-container {
+            margin: 20px 0;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* Centered content for chatbot data */
+        .centered-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+      
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <header>
-        <div class="container">
+        <div class="container header-content">
             <h1>Student Performance Analyzer</h1>
+            <nav class="nav-links hidden" id="nav-links">
+                <a href="#" class="nav-link" data-page="upload-page">Upload Data</a>
+                <a href="#" class="nav-link" data-page="students-list-page">Students List</a>
+                <a href="#" class="nav-link" data-page="analysis-page">Performance Analysis</a>
+                <a href="#" class="nav-link" data-page="chatbot-page">Ask Chatbot</a>
+                <button id="logout-btn" class="btn btn-danger">Logout</button>
+            </nav>
         </div>
     </header>
 
     <div class="container">
-        <!-- Login Page -->
-        <div id="login-page">
+        <!-- Auth Pages -->
+        <div id="login-page" class="page active">
             <div class="auth-box">
                 <h2>Login</h2>
                 <div class="form-group">
@@ -314,7 +703,7 @@
                     <label for="login-password">Password</label>
                     <input type="password" id="login-password" placeholder="Enter password">
                 </div>
-                <button class="btn btn-success" id="login-btn">Login</button>
+                <button class="btn btn-success btn-block" id="login-btn">Login</button>
                 <div class="status-message hidden" id="login-message"></div>
                 <div class="switch-auth">
                     Don't have an account? <a href="#" id="show-register">Create Account</a>
@@ -322,8 +711,7 @@
             </div>
         </div>
 
-        <!-- Register Page (Hidden by default) -->
-        <div id="register-page" class="hidden">
+        <div id="register-page" class="page">
             <div class="auth-box">
                 <h2>Create Account</h2>
                 <div class="form-group">
@@ -334,7 +722,7 @@
                     <label for="reg-password">Password</label>
                     <input type="password" id="reg-password" placeholder="Enter password">
                 </div>
-                <button class="btn" id="register-btn">Register</button>
+                <button class="btn btn-block" id="register-btn">Register</button>
                 <div class="status-message hidden" id="reg-message"></div>
                 <div class="switch-auth">
                     Already have an account? <a href="#" id="show-login">Login</a>
@@ -342,42 +730,66 @@
             </div>
         </div>
 
-        <!-- Dashboard Section (Hidden by default) -->
-        <div class="dashboard hidden" id="dashboard">
-            <button class="logout-btn" id="logout-btn">Logout</button>
-            <h2>Student Performance Dashboard</h2>
-            
+        <!-- Upload Page -->
+        <div id="upload-page" class="page">
+            <h2>Data Upload Center</h2>
             <div class="upload-section">
                 <div class="upload-box">
                     <h3>Upload Exam 1 Data</h3>
                     <input type="file" id="exam1-file" class="file-input" accept=".csv,.xlsx,.xls">
-                    <button class="btn" id="upload-exam1-btn">Upload</button>
+                    <button class="btn btn-block" id="upload-exam1-btn">Upload</button>
                     <div class="status-message hidden" id="exam1-message"></div>
                 </div>
                 
                 <div class="upload-box">
                     <h3>Train Models</h3>
-                    <button class="btn" id="train-models-btn">Train Prediction Models</button>
+                    <button class="btn btn-block" id="train-models-btn">Train Prediction Models</button>
                     <div class="status-message hidden" id="train-message"></div>
                 </div>
                 
                 <div class="upload-box">
                     <h3>Upload Exam 2 Data</h3>
                     <input type="file" id="exam2-file" class="file-input" accept=".csv,.xlsx,.xls">
-                    <button class="btn" id="upload-exam2-btn">Upload & Predict</button>
+                    <button class="btn btn-block" id="upload-exam2-btn">Upload & Predict</button>
                     <div class="status-message hidden" id="exam2-message"></div>
                 </div>
             </div>
+        </div>
 
-            <div class="student-search">
-                <input type="number" id="student-id" placeholder="Enter Student ID">
-                <button class="btn btn-success" id="search-btn">Search</button>
+        <!-- Students List Page -->
+        <div id="students-list-page" class="page">
+            <h2>Students List</h2>
+            <div class="range-search-container">
+                <div class="range-inputs">
+                    <input type="number" id="from-roll" placeholder="From" class="form-control">
+                    <span>to</span>
+                    <input type="number" id="to-roll" placeholder="To" class="form-control">
+                </div>
+                <button class="btn btn-success" id="range-search-btn">Search</button>
             </div>
 
-            <div class="charts-container hidden" id="results-section">
-                <div class="chart-box">
-                    <h3>Performance Table</h3>
-                    <table class="performance-table" id="performance-table">
+            <div class="students-page-content">
+                <div class="students-list-container">
+                    <div class="student-dropdown-container">
+                        <input type="text" class="student-search" id="student-search" placeholder="Search students..." disabled>
+                        <div class="student-dropdown" id="student-dropdown">
+                            <!-- Student items will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="student-details-container" id="student-details-container">
+                    <div class="student-header">
+                        <h3 id="selected-student">Student Details</h3>
+                        <button class="close-details" id="close-details">&times;</button>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h4>Predicted Exam 2 Performance</h4>
+                        <img id="student-exam2-chart" class="chart-img" src="" alt="Exam 2 Chart">
+                    </div>
+
+                    <table class="performance-table" id="student-performance-table">
                         <thead>
                             <tr>
                                 <th>Subject</th>
@@ -386,20 +798,113 @@
                                 <th>Remarks</th>
                             </tr>
                         </thead>
-                        <tbody id="performance-data">
+                        <tbody id="student-performance-data">
                             <!-- Data will be inserted here -->
                         </tbody>
                     </table>
+
+                    <div class="remark hidden" id="student-remark-box"></div>
                 </div>
-                
-                <div class="chart-box">
+            </div>
+        </div>
+
+        <!-- Analysis Page -->
+        <div id="analysis-page" class="page">
+            <h2>Student Performance Analysis</h2>
+            <div class="search-container">
+                <input type="number" id="roll-number" placeholder="Enter Roll Number">
+                <button class="btn btn-success" id="search-btn">Search</button>
+            </div>
+
+            <div class="results-container" id="results-section">
+                <div class="chart-container">
                     <h3>Predicted Exam 2 Performance</h3>
                     <img id="exam2-chart" class="chart-img" src="" alt="Exam 2 Chart">
                 </div>
-            </div>
 
-            <div class="remark hidden" id="remark-box"></div>
+                <table class="performance-table" id="performance-table">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Exam 1 Marks</th>
+                            <th>Exam 2 Marks</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody id="performance-data">
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+
+                <div class="remark hidden" id="remark-box"></div>
+            </div>
         </div>
+
+        <!-- Chatbot Page -->
+        <div id="chatbot-page" class="page">
+            <h2>Student Performance Chatbot</h2>
+            <p>Ask questions about student performance and get detailed analysis with visualizations.</p>
+            
+            <div class="chatbot-page-content">
+                <div class="chatbot-section">
+                    <div class="chatbot-container" id="chatbot-container">
+                        <div class="chatbot-header">
+                            <h3>Performance Assistant</h3>
+                            <button class="chatbot-toggle" id="minimize-chatbot">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                        <div class="chatbot-body">
+                            <div class="chatbot-messages" id="chatbot-messages">
+                                <div class="message bot-message">
+                                    Hello! I'm your student performance assistant. How can I help you today?
+                                    <div class="suggestions">
+                                        <div class="suggestion" data-question="What are the marks for roll number 1?">What are the marks for roll number 1?</div>
+                                        <div class="suggestion" data-question="Show performance graph for roll number 2">Show performance graph for roll number 2</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chatbot-input">
+                                <input type="text" id="chatbot-input" placeholder="Type your question...">
+                                <button id="send-message"><i class="fas fa-paper-plane"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="data-section" id="chatbot-data-display">
+                    <!-- Data and graphs from chatbot queries will be displayed here -->
+                    <div class="centered-content">
+                        <div class="chatbot-data-container">
+                            <div class="chatbot-chart-container hidden" id="chatbot-chart-container">
+                                <img id="chatbot-chart" class="chart-img" src="" alt="Performance Chart">
+                            </div>
+                            
+                            <table class="chatbot-performance-table hidden" id="chatbot-performance-table">
+                                <thead>
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th>Exam 1 Marks</th>
+                                        <th>Exam 2 Marks</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="chatbot-performance-data">
+                                    <!-- Data will be inserted here -->
+                                </tbody>
+                            </table>
+                            
+                            <div class="chatbot-remark hidden" id="chatbot-remark-box"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Chatbot Launcher -->
+    <div class="chatbot-launcher" id="chatbot-launcher">
+        <i class="fas fa-robot"></i>
     </div>
 
     <script>
@@ -407,19 +912,33 @@
         const users = JSON.parse(localStorage.getItem('users')) || [];
         
         // DOM Elements
-        const loginPage = document.getElementById('login-page');
-        const registerPage = document.getElementById('register-page');
-        const dashboard = document.getElementById('dashboard');
+        const pages = {
+            login: document.getElementById('login-page'),
+            register: document.getElementById('register-page'),
+            upload: document.getElementById('upload-page'),
+            studentsList: document.getElementById('students-list-page'),
+            analysis: document.getElementById('analysis-page'),
+            chatbot: document.getElementById('chatbot-page')
+        };
+
+        const navLinks = document.querySelectorAll('.nav-link');
+        const logoutBtn = document.getElementById('logout-btn');
         const registerBtn = document.getElementById('register-btn');
         const loginBtn = document.getElementById('login-btn');
-        const logoutBtn = document.getElementById('logout-btn');
         const showRegister = document.getElementById('show-register');
         const showLogin = document.getElementById('show-login');
+        const navLinksContainer = document.getElementById('nav-links');
         const regMessage = document.getElementById('reg-message');
         const loginMessage = document.getElementById('login-message');
         const searchBtn = document.getElementById('search-btn');
+        const rangeSearchBtn = document.getElementById('range-search-btn');
         const resultsSection = document.getElementById('results-section');
         const remarkBox = document.getElementById('remark-box');
+        const studentSearch = document.getElementById('student-search');
+        const studentDropdown = document.getElementById('student-dropdown');
+        const studentDetailsContainer = document.getElementById('student-details-container');
+        const closeDetailsBtn = document.getElementById('close-details');
+        const selectedStudentHeader = document.getElementById('selected-student');
         
         // File upload elements
         const uploadExam1Btn = document.getElementById('upload-exam1-btn');
@@ -434,25 +953,90 @@
         // Performance table elements
         const performanceTable = document.getElementById('performance-table');
         const performanceData = document.getElementById('performance-data');
+        const studentPerformanceData = document.getElementById('student-performance-data');
+        const studentRemarkBox = document.getElementById('student-remark-box');
+
+        // Chatbot elements
+        const chatbotLauncher = document.getElementById('chatbot-launcher');
+        const chatbotContainer = document.getElementById('chatbot-container');
+        const minimizeChatbot = document.getElementById('minimize-chatbot');
+        const chatbotMessages = document.getElementById('chatbot-messages');
+        const chatbotInput = document.getElementById('chatbot-input');
+        const sendMessageBtn = document.getElementById('send-message');
+        const suggestions = document.querySelectorAll('.suggestion');
+        const chatbotChartContainer = document.getElementById('chatbot-chart-container');
+        const chatbotChart = document.getElementById('chatbot-chart');
+        const chatbotPerformanceTable = document.getElementById('chatbot-performance-table');
+        const chatbotPerformanceData = document.getElementById('chatbot-performance-data');
+        const chatbotRemarkBox = document.getElementById('chatbot-remark-box');
 
         // Event Listeners
         registerBtn.addEventListener('click', registerUser);
         loginBtn.addEventListener('click', loginUser);
         logoutBtn.addEventListener('click', logout);
         searchBtn.addEventListener('click', searchStudent);
+        rangeSearchBtn.addEventListener('click', searchStudentsRange);
         uploadExam1Btn.addEventListener('click', uploadExam1);
         trainModelsBtn.addEventListener('click', trainModels);
         uploadExam2Btn.addEventListener('click', uploadExam2);
-        showRegister.addEventListener('click', () => {
-            loginPage.classList.add('hidden');
-            registerPage.classList.remove('hidden');
+        showRegister.addEventListener('click', (e) => {
+            e.preventDefault();
+            showPage('register');
         });
-        showLogin.addEventListener('click', () => {
-            registerPage.classList.add('hidden');
-            loginPage.classList.remove('hidden');
+        showLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            showPage('login');
+        });
+        closeDetailsBtn.addEventListener('click', () => {
+            studentDetailsContainer.style.display = 'none';
+        });
+
+        // Chatbot event listeners
+        chatbotLauncher.addEventListener('click', toggleChatbot);
+        minimizeChatbot.addEventListener('click', toggleChatbot);
+        sendMessageBtn.addEventListener('click', sendChatbotMessage);
+        chatbotInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendChatbotMessage();
+            }
+        });
+        
+        // Add click handlers for suggestion buttons
+        suggestions.forEach(suggestion => {
+            suggestion.addEventListener('click', (e) => {
+                const question = e.target.getAttribute('data-question');
+                chatbotInput.value = question;
+                sendChatbotMessage();
+            });
+        });
+
+        // Navigation links
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = link.dataset.page;
+                showPage(page);
+                
+                // Update active state
+                navLinks.forEach(navLink => navLink.classList.remove('active'));
+                link.classList.add('active');
+                
+                // Special handling for chatbot page
+                if (page === 'chatbot-page') {
+                    chatbotContainer.style.display = 'block';
+                }
+            });
         });
 
         // Functions
+        function showPage(pageId) {
+            // Hide all pages
+            Object.values(pages).forEach(page => page.classList.remove('active'));
+            
+            // Show the requested page
+            document.getElementById(pageId).classList.add('active');
+        }
+
         function registerUser() {
             const username = document.getElementById('reg-username').value.trim();
             const password = document.getElementById('reg-password').value.trim();
@@ -474,8 +1058,7 @@
             // Clear fields and switch to login page
             document.getElementById('reg-username').value = '';
             document.getElementById('reg-password').value = '';
-            registerPage.classList.add('hidden');
-            loginPage.classList.remove('hidden');
+            showPage('login');
         }
 
         function loginUser() {
@@ -490,27 +1073,33 @@
             const user = users.find(user => user.username === username && user.password === password);
             
             if (user) {
-                // Hide auth pages and show dashboard
-                loginPage.classList.add('hidden');
-                registerPage.classList.add('hidden');
-                dashboard.classList.remove('hidden');
+                // Hide auth pages and show navigation
+                showPage('upload-page');
+                navLinksContainer.classList.remove('hidden');
                 showMessage(loginMessage, '', 'success');
                 
                 // Clear fields
                 document.getElementById('login-username').value = '';
                 document.getElementById('login-password').value = '';
+                
+                // Set first nav link as active
+                navLinks[0].classList.add('active');
             } else {
                 showMessage(loginMessage, 'Invalid username or password', 'error');
             }
         }
 
         function logout() {
-            // Show login page and hide dashboard
-            loginPage.classList.remove('hidden');
-            registerPage.classList.add('hidden');
-            dashboard.classList.add('hidden');
-            resultsSection.classList.add('hidden');
+            // Show login page and hide navigation
+            showPage('login');
+            navLinksContainer.classList.add('hidden');
+            resultsSection.style.display = 'none';
             remarkBox.classList.add('hidden');
+            studentDropdown.innerHTML = '';
+            studentSearch.value = '';
+            studentSearch.disabled = true;
+            studentDetailsContainer.style.display = 'none';
+            chatbotContainer.style.display = 'none';
         }
 
         function showMessage(element, message, type) {
@@ -602,17 +1191,173 @@
             }
         }
 
-        async function searchStudent() {
-            const studentId = document.getElementById('student-id').value.trim();
+        function filterStudents() {
+            const searchTerm = studentSearch.value.toLowerCase();
+            const items = studentDropdown.querySelectorAll('.student-item');
             
-            if (!studentId) {
-                alert('Please enter a student ID');
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        async function searchStudentsRange() {
+            const fromRoll = parseInt(document.getElementById('from-roll').value.trim());
+            const toRoll = parseInt(document.getElementById('to-roll').value.trim());
+            
+            if (!fromRoll || !toRoll || fromRoll > toRoll) {
+                alert('Please enter valid roll number range (From must be less than To)');
+                return;
+            }
+            
+            try {
+                // Simulate fetching students in range (in a real app, this would be an API call)
+                const students = [];
+                for (let i = fromRoll; i <= toRoll; i++) {
+                    students.push(i);
+                }
+                
+                // Clear previous list
+                studentDropdown.innerHTML = '';
+                
+                // Enable search input
+                studentSearch.disabled = false;
+                studentSearch.placeholder = `Search ${students.length} students...`;
+                
+                // Create student dropdown items
+                students.forEach(rollNumber => {
+                    const item = document.createElement('div');
+                    item.className = 'student-item';
+                    item.textContent = `Roll No: ${rollNumber}`;
+                    item.addEventListener('click', () => {
+                        studentSearch.value = `Roll No: ${rollNumber}`;
+                        studentDropdown.style.display = 'none';
+                        
+                        // Load student details in the right panel
+                        loadStudentDetails(rollNumber);
+                    });
+                    studentDropdown.appendChild(item);
+                });
+                
+                // Show dropdown if there are items
+                if (students.length > 0) {
+                    studentDropdown.style.display = 'block';
+                }
+                
+            } catch (error) {
+                alert('Failed to fetch students list');
+                console.error('Range search error:', error);
+            }
+        }
+
+        async function loadStudentDetails(rollNumber) {
+            try {
+                // Update header
+                selectedStudentHeader.textContent = `Student Details - Roll No: ${rollNumber}`;
+                
+                // First fetch the chart image for Exam 2
+                const chartResponse = await fetch(`/student_marks_chart/${rollNumber}`);
+                if (!chartResponse.ok) {
+                    const error = await chartResponse.json();
+                    throw new Error(error.detail || 'Error generating student chart');
+                }
+
+                // Display the Exam 2 chart
+                const imageUrl = URL.createObjectURL(await chartResponse.blob());
+                document.getElementById('student-exam2-chart').src = imageUrl;
+
+                // Then fetch the marks data for the table
+                const marksResponse = await fetch(`/student_marks_data/${rollNumber}`);
+                if (!marksResponse.ok) {
+                    const error = await marksResponse.json();
+                    throw new Error(error.detail || 'Error fetching marks data');
+                }
+
+                const marksData = await marksResponse.json();
+
+                // Clear previous data
+                studentPerformanceData.innerHTML = '';
+
+                // Calculate average and prepare table data
+                let totalMarks = 0;
+                let subjectCount = 0;
+                let allMarks = [];
+
+                // Add rows for each subject
+                for (const subject in marksData.exam1) {
+                    const exam1Mark = marksData.exam1[subject] || '-';
+                    const exam2Mark = marksData.exam2[subject] || '-';
+                    
+                    // Calculate remarks for each subject
+                    let remarks = '';
+                    if (exam1Mark !== '-' && exam2Mark !== '-') {
+                        const improvement = exam2Mark - exam1Mark;
+                        if (improvement > 10) {
+                            remarks = 'Excellent improvement!';
+                        } else if (improvement > 0) {
+                            remarks = 'Improved';
+                        } else if (improvement === 0) {
+                            remarks = 'No change';
+                        } else {
+                            remarks = 'Needs attention';
+                        }
+                    } else {
+                        remarks = 'Data not available';
+                    }
+
+                    // Add to totals if we have both marks
+                    if (exam1Mark !== '-' && exam2Mark !== '-') {
+                        totalMarks += exam1Mark + exam2Mark;
+                        subjectCount += 2;
+                        allMarks.push(exam1Mark, exam2Mark);
+                    }
+
+                    // Create table row
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${subject}</td>
+                        <td>${exam1Mark}</td>
+                        <td>${exam2Mark}</td>
+                        <td>${remarks}</td>
+                    `;
+                    studentPerformanceData.appendChild(row);
+                }
+
+                // Calculate and display overall average
+                const actualAverage = allMarks.length > 0 ? 
+                    allMarks.reduce((total, mark) => total + mark, 0) / allMarks.length : 0;
+
+                studentRemarkBox.textContent = `Overall Average Score: ${actualAverage.toFixed(1)} - `;
+                studentRemarkBox.textContent += actualAverage < 60 ? 
+                    'Needs Improvement! Consider additional study sessions.' : 
+                    'Good job! Keep up the good work.';
+                studentRemarkBox.className = actualAverage < 60 ? 'remark improve' : 'remark good';
+                studentRemarkBox.classList.remove('hidden');
+
+                // Show the details container
+                studentDetailsContainer.style.display = 'block';
+
+            } catch (error) {
+                alert(error.message || 'Failed to fetch student data');
+                console.error('Search error:', error);
+            }
+        }
+
+        async function searchStudent() {
+            const rollNumber = document.getElementById('roll-number').value.trim();
+            
+            if (!rollNumber) {
+                alert('Please enter a roll number');
                 return;
             }
             
             try {
                 // First fetch the chart image for Exam 2
-                const chartResponse = await fetch(`/student_marks_chart/${studentId}`);
+                const chartResponse = await fetch(`/student_marks_chart/${rollNumber}`);
                 if (!chartResponse.ok) {
                     const error = await chartResponse.json();
                     throw new Error(error.detail || 'Error generating student chart');
@@ -623,7 +1368,7 @@
                 document.getElementById('exam2-chart').src = imageUrl;
 
                 // Then fetch the marks data for the table
-                const marksResponse = await fetch(`/student_marks_data/${studentId}`);
+                const marksResponse = await fetch(`/student_marks_data/${rollNumber}`);
                 if (!marksResponse.ok) {
                     const error = await marksResponse.json();
                     throw new Error(error.detail || 'Error fetching marks data');
@@ -680,7 +1425,7 @@
                 }
 
                 // Show the results section
-                resultsSection.classList.remove('hidden');
+                resultsSection.style.display = 'block';
 
                 // Calculate and display overall average
                 const actualAverage = allMarks.length > 0 ? 
@@ -697,8 +1442,306 @@
                 alert(error.message || 'Failed to fetch student data');
                 console.error('Search error:', error);
                 // Hide results if there was an error
-                resultsSection.classList.add('hidden');
+                resultsSection.style.display = 'none';
                 remarkBox.classList.add('hidden');
+            }
+        }
+
+        // Chatbot Functions
+        function toggleChatbot() {
+            if (chatbotContainer.style.display === 'none' || !chatbotContainer.style.display) {
+                chatbotContainer.style.display = 'block';
+                chatbotLauncher.style.display = 'none';
+            } else {
+                chatbotContainer.style.display = 'none';
+                chatbotLauncher.style.display = 'flex';
+            }
+        }
+
+        async function sendChatbotMessage() {
+            const message = chatbotInput.value.trim();
+            if (!message) return;
+
+            // Add user message to chat
+            addMessage(message, 'user');
+            chatbotInput.value = '';
+            
+            // Show typing indicator
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'typing-indicator';
+            typingIndicator.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `;
+            chatbotMessages.appendChild(typingIndicator);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            
+            try {
+                // Simulate processing delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Remove typing indicator
+                chatbotMessages.removeChild(typingIndicator);
+                
+                // Process the message and generate response
+                const response = await processChatbotMessage(message);
+                addMessage(response.text, 'bot', response.formattedText);
+                
+                // If response contains data, display it
+                if (response.data) {
+                    displayChatbotData(response.data);
+                }
+                
+            } catch (error) {
+                console.error('Chatbot error:', error);
+                chatbotMessages.removeChild(typingIndicator);
+                addMessage("Sorry, I encountered an error processing your request. Please try again.", 'bot');
+            }
+        }
+
+        function addMessage(text, sender, formattedText = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            if (formattedText) {
+                const pre = document.createElement('div');
+                pre.className = 'pre-formatted';
+                pre.innerHTML = formattedText;
+                messageDiv.appendChild(pre);
+            } else {
+                messageDiv.textContent = text;
+            }
+            
+            // Add suggestions for the first bot message
+            if (sender === 'bot' && chatbotMessages.children.length === 1) {
+                const suggestionsDiv = document.createElement('div');
+                suggestionsDiv.className = 'suggestions';
+                suggestionsDiv.innerHTML = `
+                    <div class="suggestion" data-question="What are the marks for roll number 1?">What are the marks for roll number 1?</div>
+                    <div class="suggestion" data-question="Show performance graph for roll number 2">Show performance graph for roll number 2</div>
+                `;
+                messageDiv.appendChild(suggestionsDiv);
+                
+                // Add click handlers for new suggestion buttons
+                suggestionsDiv.querySelectorAll('.suggestion').forEach(suggestion => {
+                    suggestion.addEventListener('click', (e) => {
+                        const question = e.target.getAttribute('data-question');
+                        chatbotInput.value = question;
+                        sendChatbotMessage();
+                    });
+                });
+            }
+            
+            chatbotMessages.appendChild(messageDiv);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+
+        async function processChatbotMessage(message) {
+            // This is a simplified NLP processing - in a real app, you'd use a proper NLP library
+            const lowerMessage = message.toLowerCase();
+            
+            // Extract roll numbers from the message
+            const rollNumbers = [];
+            const rollNumberMatches = message.match(/\d+/g);
+            if (rollNumberMatches) {
+                rollNumbers.push(...rollNumberMatches.map(num => parseInt(num)));
+            }
+            
+            // Determine intent
+            if (rollNumbers.length > 0) {
+                if (lowerMessage.includes('mark') || lowerMessage.includes('score') || lowerMessage.includes('result')) {
+                    // Request for marks
+                    return await handleSingleStudentRequest(rollNumbers[0]);
+                } else if (lowerMessage.includes('graph') || lowerMessage.includes('chart') || lowerMessage.includes('visual')) {
+                    // Request for graph
+                    return await handleGraphRequest(rollNumbers[0]);
+                } else {
+                    // Generic student info request
+                    return await handleSingleStudentRequest(rollNumbers[0]);
+                }
+            } else {
+                // No roll number detected
+                return {
+                    text: "I can help you with student performance data. Please mention a roll number in your question, like 'What are the marks for roll number 1?'",
+                    data: null
+                };
+            }
+        }
+
+        async function handleSingleStudentRequest(rollNumber) {
+            try {
+                // Fetch student data
+                const marksResponse = await fetch(`/student_marks_data/${rollNumber}`);
+                if (!marksResponse.ok) {
+                    const error = await marksResponse.json();
+                    throw new Error(error.detail || 'Error fetching marks data');
+                }
+
+                const marksData = await marksResponse.json();
+                
+                // Prepare formatted response text
+                let responseText = `Here are the details for Roll No ${rollNumber}:\n\n`;
+                let formattedText = `<strong>Details for Roll No ${rollNumber}:</strong><br><br>`;
+                let hasData = false;
+                
+                for (const subject in marksData.exam1) {
+                    const exam1Mark = marksData.exam1[subject] || 'N/A';
+                    const exam2Mark = marksData.exam2[subject] || 'N/A';
+                    
+                    if (exam1Mark !== 'N/A' || exam2Mark !== 'N/A') {
+                        responseText += `${subject}: Exam 1 - ${exam1Mark}, Exam 2 - ${exam2Mark}\n`;
+                        formattedText += `<strong>${subject}:</strong> Exam 1 - ${exam1Mark}, Exam 2 - ${exam2Mark}<br>`;
+                        hasData = true;
+                    }
+                }
+                
+                if (!hasData) {
+                    responseText = `No data found for Roll No ${rollNumber}`;
+                    formattedText = responseText;
+                    return { 
+                        text: responseText,
+                        formattedText: formattedText,
+                        data: null 
+                    };
+                }
+                
+                // Calculate average if possible
+                const allMarks = [];
+                for (const subject in marksData.exam1) {
+                    if (marksData.exam1[subject] && marksData.exam2[subject]) {
+                        allMarks.push(marksData.exam1[subject], marksData.exam2[subject]);
+                    }
+                }
+                
+                if (allMarks.length > 0) {
+                    const average = allMarks.reduce((total, mark) => total + mark, 0) / allMarks.length;
+                    responseText += `\nOverall Average: ${average.toFixed(1)}`;
+                    formattedText += `<br><strong>Overall Average:</strong> ${average.toFixed(1)}`;
+                }
+                
+                return {
+                    text: responseText,
+                    formattedText: formattedText,
+                    data: {
+                        type: 'single-student',
+                        rollNumber: rollNumber,
+                        marksData: marksData
+                    }
+                };
+                
+            } catch (error) {
+                console.error('Error processing student request:', error);
+                return {
+                    text: `Sorry, I couldn't retrieve data for Roll No ${rollNumber}. Please try again later.`,
+                    formattedText: `Sorry, I couldn't retrieve data for Roll No ${rollNumber}. Please try again later.`,
+                    data: null
+                };
+            }
+        }
+
+        async function handleGraphRequest(rollNumber) {
+            try {
+                // First fetch the chart image
+                const chartResponse = await fetch(`/student_marks_chart/${rollNumber}`);
+                if (!chartResponse.ok) {
+                    const error = await chartResponse.json();
+                    throw new Error(error.detail || 'Error generating student chart');
+                }
+
+                // Get the image URL
+                const imageUrl = URL.createObjectURL(await chartResponse.blob());
+                
+                return {
+                    text: `Here's the performance graph for Roll No ${rollNumber}:`,
+                    formattedText: `<strong>Performance graph for Roll No ${rollNumber}:</strong>`,
+                    data: {
+                        type: 'graph',
+                        rollNumber: rollNumber,
+                        imageUrl: imageUrl
+                    }
+                };
+                
+            } catch (error) {
+                console.error('Error processing graph request:', error);
+                return {
+                    text: `Sorry, I couldn't generate the graph for Roll No ${rollNumber}. Please try again later.`,
+                    formattedText: `Sorry, I couldn't generate the graph for Roll No ${rollNumber}. Please try again later.`,
+                    data: null
+                };
+            }
+        }
+
+        function displayChatbotData(data) {
+            // Hide all data elements first
+            chatbotChartContainer.classList.add('hidden');
+            chatbotPerformanceTable.classList.add('hidden');
+            chatbotRemarkBox.classList.add('hidden');
+            
+            // Clear previous data
+            chatbotPerformanceData.innerHTML = '';
+            
+            if (data.type === 'single-student') {
+                // Display marks table
+                const marksData = data.marksData;
+                
+                for (const subject in marksData.exam1) {
+                    const exam1Mark = marksData.exam1[subject] || '-';
+                    const exam2Mark = marksData.exam2[subject] || '-';
+                    
+                    // Calculate remarks for each subject
+                    let remarks = '';
+                    if (exam1Mark !== '-' && exam2Mark !== '-') {
+                        const improvement = exam2Mark - exam1Mark;
+                        if (improvement > 10) {
+                            remarks = 'Excellent improvement!';
+                        } else if (improvement > 0) {
+                            remarks = 'Improved';
+                        } else if (improvement === 0) {
+                            remarks = 'No change';
+                        } else {
+                            remarks = 'Needs attention';
+                        }
+                    } else {
+                        remarks = 'Data not available';
+                    }
+
+                    // Create table row
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${subject}</td>
+                        <td>${exam1Mark}</td>
+                        <td>${exam2Mark}</td>
+                        <td>${remarks}</td>
+                    `;
+                    chatbotPerformanceData.appendChild(row);
+                }
+                
+                // Calculate and display overall average if possible
+                const allMarks = [];
+                for (const subject in marksData.exam1) {
+                    if (marksData.exam1[subject] && marksData.exam2[subject]) {
+                        allMarks.push(marksData.exam1[subject], marksData.exam2[subject]);
+                    }
+                }
+                
+                if (allMarks.length > 0) {
+                    const average = allMarks.reduce((total, mark) => total + mark, 0) / allMarks.length;
+                    chatbotRemarkBox.textContent = `Overall Average Score: ${average.toFixed(1)} - `;
+                    chatbotRemarkBox.textContent += average < 60 ? 
+                        'Needs Improvement! Consider additional study sessions.' : 
+                        'Good job! Keep up the good work.';
+                    chatbotRemarkBox.className = average < 60 ? 'remark improve' : 'remark good';
+                    chatbotRemarkBox.classList.remove('hidden');
+                }
+                
+                // Show the table
+                chatbotPerformanceTable.classList.remove('hidden');
+                
+            } else if (data.type === 'graph') {
+                // Display the graph
+                chatbotChart.src = data.imageUrl;
+                chatbotChartContainer.classList.remove('hidden');
             }
         }
     </script>
